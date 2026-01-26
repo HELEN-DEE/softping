@@ -2,9 +2,11 @@
 
 import React, { } from 'react';
 import { Heart} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function HeroSection() {
-   
+  const router = useRouter();
+  
   return (
     <section className="px-6 pt-20 pb-16 max-w-4xl mx-auto text-center">
       <div className="inline-block mb-6">
@@ -26,7 +28,9 @@ export default function HeroSection() {
         No awkward texts. No fear. Just a sweet message and a link.
       </p>
       
-      <button className="bg-red-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-red-600 hover:shadow-lg transition-all duration-200">
+      <button className="bg-red-500 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-red-600 hover:shadow-lg transition-all duration-200"
+        onClick={() => router.push('/create')}
+      >
         Create Your Message
       </button>
       
