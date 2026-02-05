@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Heart, Copy, Check, ArrowLeft } from 'lucide-react';
+import { Heart, Copy, Check, ArrowLeft, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CreatePage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     senderName: '',
     recipientName: '',
@@ -61,11 +62,63 @@ export default function CreatePage() {
     }
   };
 
-  const generateLink = () => {
-    const uniqueId = Math.random().toString(36).substring(2, 9);
-    setGeneratedLink(`https://softping.app/m/${uniqueId}`);
+  const generateLink = async () => {
+  setIsLoading(true);
+  
+  try {
+    console.log('🚀 Starting API call...');
+    console.log('📦 Sending data:', {
+      senderName: formData.senderName,
+      recipientName: formData.recipientName,
+      message: formData.message,
+      theme: formData.theme,
+      activities: formData.activities,
+    });
+
+    const response = await fetch('/api/messages/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        senderName: formData.senderName,
+        recipientName: formData.recipientName,
+        message: formData.message,
+        theme: formData.theme,
+        activities: formData.activities,
+      }),
+    });
+
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
+
+    const data = await response.json();
+    console.log('📥 Data received:', data);
+
+    if (!response.ok) {
+      console.error('❌ Error from API:', data.error);
+      alert(`API Error: ${data.error || 'Unknown error'}`);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!data.link) {
+      console.error('❌ No link in response:', data);
+      alert('No link was generated. Check console for details.');
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('✅ Setting link:', data.link);
+    setGeneratedLink(data.link);
     setStep(3);
-  };
+  } catch (error) {
+    console.error('💥 Catch block error:', error);
+    alert(`Error: ${error}`);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const copyLink = () => {
     navigator.clipboard.writeText(generatedLink);
@@ -81,6 +134,7 @@ export default function CreatePage() {
           <button 
             onClick={() => step === 1 ? router.push('/') : setStep(step - 1)}
             className="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors mb-4"
+            disabled={isLoading}
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-medium">Back</span>
@@ -198,6 +252,7 @@ export default function CreatePage() {
                     <button
                       key={activity.id}
                       onClick={() => toggleActivity(activity.id)}
+                      disabled={isLoading}
                       className={`p-4 rounded-xl border-2 font-medium transition-all ${
                         formData.activities.includes(activity.id)
                           ? 'bg-red-50 border-red-500 text-red-700'
@@ -220,6 +275,7 @@ export default function CreatePage() {
                     <button
                       key={theme.id}
                       onClick={() => setFormData({ ...formData, theme: theme.id })}
+                      disabled={isLoading}
                       className={`p-4 rounded-xl border-2 font-medium transition-all ${
                         formData.theme === theme.id
                           ? 'border-red-500 bg-red-50'
@@ -235,9 +291,17 @@ export default function CreatePage() {
 
               <button
                 onClick={generateLink}
-                className="w-full bg-red-500 text-white py-4 rounded-full text-lg font-semibold hover:bg-red-600 transition-all"
+                disabled={isLoading}
+                className="w-full bg-red-500 text-white py-4 rounded-full text-lg font-semibold hover:bg-red-600 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Generate Link 🎉
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating your link...
+                  </>
+                ) : (
+                  'Generate Link 🎉'
+                )}
               </button>
             </div>
           )}
@@ -255,25 +319,31 @@ export default function CreatePage() {
               </p>
 
               <div className="bg-pink-50 border-2 border-red-200 rounded-2xl p-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-3 text-left">
-                  Your unique link
-                </label>
-                <div className="flex flex-col sm:flex-row items-stretch gap-3">
-                  <input
-                    type="text"
-                    value={generatedLink}
-                    readOnly
-                    className="flex-1 bg-white px-4 py-3 rounded-xl border-2 border-red-200 text-gray-700 text-sm font-mono"
-                  />
-                  <button
-                    onClick={copyLink}
-                    className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all flex items-center justify-center gap-2"
-                  >
-                    {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                    {copied ? 'Copied!' : 'Copy Link'}
-                  </button>
-                </div>
-              </div>
+  <label className="block text-sm font-semibold text-gray-700 mb-3 text-left">
+    Your unique link
+  </label>
+  <div className="flex flex-col sm:flex-row items-stretch gap-3">
+    <input
+      type="text"
+      value={generatedLink}
+      readOnly
+      onClick={(e) => e.currentTarget.select()}
+      className="flex-1 bg-white px-4 py-3 rounded-xl border-2 border-red-200 text-gray-700 text-sm"
+    />
+    <button
+      onClick={copyLink}
+      className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+    >
+      {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+      {copied ? 'Copied!' : 'Copy Link'}
+    </button>
+  </div>
+  
+  {/* DEBUG: Show what we got back */}
+  <p className="text-xs text-gray-500 mt-2">
+    Link: {generatedLink || 'No link generated yet'}
+  </p>
+</div>
 
               <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-left">
                 <p className="text-sm font-semibold text-gray-900 mb-3">
