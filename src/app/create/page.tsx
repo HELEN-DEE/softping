@@ -16,7 +16,9 @@ export default function CreatePage() {
     activities: [] as string[]
   });
   const [generatedLink, setGeneratedLink] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [trackingLink, setTrackingLink] = useState('');
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [copiedTracking, setCopiedTracking] = useState(false);
 
   const templates = [
     {
@@ -63,67 +65,50 @@ export default function CreatePage() {
   };
 
   const generateLink = async () => {
-  setIsLoading(true);
-  
-  try {
-    console.log('🚀 Starting API call...');
-    console.log('📦 Sending data:', {
-      senderName: formData.senderName,
-      recipientName: formData.recipientName,
-      message: formData.message,
-      theme: formData.theme,
-      activities: formData.activities,
-    });
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/messages/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          senderName: formData.senderName,
+          recipientName: formData.recipientName,
+          message: formData.message,
+          theme: formData.theme,
+          activities: formData.activities,
+        }),
+      });
 
-    const response = await fetch('/api/messages/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        senderName: formData.senderName,
-        recipientName: formData.recipientName,
-        message: formData.message,
-        theme: formData.theme,
-        activities: formData.activities,
-      }),
-    });
+      const data = await response.json();
 
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response ok:', response.ok);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create message');
+      }
 
-    const data = await response.json();
-    console.log('📥 Data received:', data);
-
-    if (!response.ok) {
-      console.error('❌ Error from API:', data.error);
-      alert(`API Error: ${data.error || 'Unknown error'}`);
+      setGeneratedLink(data.link);
+      setTrackingLink(data.trackingLink);
+      setStep(3);
+    } catch (error) {
+      console.error('Error generating link:', error);
+      alert('Sorry, something went wrong. Please try again.');
+    } finally {
       setIsLoading(false);
-      return;
     }
+  };
 
-    if (!data.link) {
-      console.error('❌ No link in response:', data);
-      alert('No link was generated. Check console for details.');
-      setIsLoading(false);
-      return;
-    }
-
-    console.log('✅ Setting link:', data.link);
-    setGeneratedLink(data.link);
-    setStep(3);
-  } catch (error) {
-    console.error('💥 Catch block error:', error);
-    alert(`Error: ${error}`);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  const copyLink = () => {
+  const copyMessageLink = () => {
     navigator.clipboard.writeText(generatedLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedMessage(true);
+    setTimeout(() => setCopiedMessage(false), 2000);
+  };
+
+  const copyTrackingLink = () => {
+    navigator.clipboard.writeText(trackingLink);
+    setCopiedTracking(true);
+    setTimeout(() => setCopiedTracking(false), 2000);
   };
 
   return (
@@ -297,16 +282,16 @@ export default function CreatePage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Creating your link...
+                    Creating your links...
                   </>
                 ) : (
-                  'Generate Link 🎉'
+                  'Generate Links 🎉'
                 )}
               </button>
             </div>
           )}
 
-          {/* Step 3: Share Link */}
+          {/* Step 3: Share Links */}
           {step === 3 && (
             <div className="space-y-6 text-center">
               <div className="w-20 h-20 bg-red-500 rounded-full mx-auto flex items-center justify-center mb-4">
@@ -315,56 +300,75 @@ export default function CreatePage() {
               
               <h2 className="text-3xl font-bold text-gray-900">Your message is ready! 💕</h2>
               <p className="text-gray-600 text-lg">
-                Share this link with them. They&apos;ll see your message and can respond privately.
+                You got two links: one to share, one to track responses!
               </p>
 
-              <div className="bg-pink-50 border-2 border-red-200 rounded-2xl p-6">
-  <label className="block text-sm font-semibold text-gray-700 mb-3 text-left">
-    Your unique link
-  </label>
-  <div className="flex flex-col sm:flex-row items-stretch gap-3">
-    <input
-      type="text"
-      value={generatedLink}
-      readOnly
-      onClick={(e) => e.currentTarget.select()}
-      className="flex-1 bg-white px-4 py-3 rounded-xl border-2 border-red-200 text-gray-700 text-sm"
-    />
-    <button
-      onClick={copyLink}
-      className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all flex items-center justify-center gap-2"
-    >
-      {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-      {copied ? 'Copied!' : 'Copy Link'}
-    </button>
-  </div>
-  
-  {/* DEBUG: Show what we got back */}
-  <p className="text-xs text-gray-500 mt-2">
-    Link: {generatedLink || 'No link generated yet'}
-  </p>
-</div>
+              {/* Message Link */}
+              <div className="bg-pink-50 border-2 border-red-200 rounded-2xl p-6 text-left">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  📨 Share this link with them
+                </label>
+                <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                  <input
+                    type="text"
+                    value={generatedLink}
+                    readOnly
+                    onClick={(e) => e.currentTarget.select()}
+                    className="flex-1 bg-white px-4 py-3 rounded-xl border-2 border-red-200 text-gray-700 text-sm"
+                  />
+                  <button
+                    onClick={copyMessageLink}
+                    className="bg-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    {copiedMessage ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    {copiedMessage ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Tracking Link */}
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-6 text-left">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  👀 Bookmark this to track responses
+                </label>
+                <div className="flex flex-col sm:flex-row items-stretch gap-3">
+                  <input
+                    type="text"
+                    value={trackingLink}
+                    readOnly
+                    onClick={(e) => e.currentTarget.select()}
+                    className="flex-1 bg-white px-4 py-3 rounded-xl border-2 border-purple-200 text-gray-700 text-sm"
+                  />
+                  <button
+                    onClick={copyTrackingLink}
+                    className="bg-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-purple-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    {copiedTracking ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                    {copiedTracking ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
 
               <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-left">
                 <p className="text-sm font-semibold text-gray-900 mb-3">
-                  📱 Tips for sharing:
+                  💡 How it works:
                 </p>
                 <ul className="text-sm text-gray-700 space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="text-red-500">•</span>
-                    <span>Send it via text, DM, or any messaging app</span>
+                    <span>Send the <strong>message link</strong> to your crush via text, DM, etc.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-500">•</span>
-                    <span>No pressure - they can respond in their own time</span>
+                    <span>Bookmark the <strong>tracking link</strong> to see when they open it and respond</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-500">•</span>
-                    <span>The link is private and only works once</span>
+                    <span>The tracking page updates automatically - no refresh needed!</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-red-500">•</span>
-                    <span>Messages expire on Feb 15th</span>
+                    <span>Both links expire on Feb 15th</span>
                   </li>
                 </ul>
               </div>
@@ -387,6 +391,7 @@ export default function CreatePage() {
                       activities: []
                     });
                     setGeneratedLink('');
+                    setTrackingLink('');
                   }}
                   className="flex-1 bg-red-500 text-white py-4 rounded-full text-lg font-semibold hover:bg-red-600 transition-all"
                 >
