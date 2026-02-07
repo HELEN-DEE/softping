@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         sender_name: body.senderName || null,
         recipient_name: body.recipientName || null,
         message_text: body.message,
-        theme: body.theme || 'classic',
+        theme: body.cardStyle || 'classic',
         activities: body.activities || [],
         expires_at: expiresAt.toISOString()
       })

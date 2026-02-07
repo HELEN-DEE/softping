@@ -1,41 +1,41 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/src/lib/supabase';
 
+// Explicitly define the context type for Next.js 15
+type RouteContext = {
+  params: Promise<{ trackingToken: string }>;
+};
+
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ trackingToken: string }> }
+  { params }: RouteContext
 ) {
   try {
     const { trackingToken } = await params;
-    console.log('🔍 Looking for message with tracking token:', trackingToken);
 
-    // Fetch message from database using tracking_token
-    const { data: message, error } = await supabase
+    // 1. Fetch message
+    const { data: message, error: msgError } = await supabase
       .from('messages')
       .select('*')
       .eq('tracking_token', trackingToken)
       .single();
 
-    console.log('📤 Message found:', message);
-    console.log('📤 Error:', error);
-
-    if (error || !message) {
+    if (msgError || !message) {
       return NextResponse.json(
         { error: 'Tracking link not found' },
         { status: 404 }
       );
     }
 
-    // Fetch response if it exists
+    // 2. Fetch response (using .maybeSingle() to avoid 406 errors if empty)
     const { data: response } = await supabase
       .from('responses')
       .select('*')
       .eq('message_id', message.id)
-      .single();
+      .maybeSingle();
 
-    console.log('📬 Response found:', response);
-
-    return NextResponse.json({
+    // 3. Construct the response
+    const payload = {
       success: true,
       message: {
         id: message.id,
@@ -44,7 +44,7 @@ export async function GET(
         messageText: message.message_text,
         theme: message.theme,
         activities: message.activities,
-        isOpened: message.is_opened,
+        isOpened: message.is_opened, // Ensure this matches the UI's 'isOpened'
         createdAt: message.created_at,
         expiresAt: message.expires_at
       },
@@ -54,6 +54,15 @@ export async function GET(
         replyText: response.reply_text,
         createdAt: response.created_at
       } : null
+    };
+
+    // 4. Return with Cache-Control headers to ensure the "Live" feel
+    return new NextResponse(JSON.stringify(payload), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0', 
+      },
     });
 
   } catch (error) {

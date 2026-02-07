@@ -1,300 +1,188 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Heart, Loader2, Eye, Clock, CheckCircle, MessageCircle, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Heart, Loader2, Eye, CheckCircle,  ArrowLeft, Plus, Clock } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 
-type MessageData = {
+// --- TYPES ---
+interface MessageData {
   id: string;
   senderName: string | null;
   recipientName: string | null;
   messageText: string;
-  theme: string;
-  activities: string[];
   isOpened: boolean;
   createdAt: string;
   expiresAt: string;
-};
+}
 
-type ResponseData = {
+interface ResponseData {
   responseType: 'yes' | 'maybe' | 'no';
   selectedActivity: string | null;
   replyText: string | null;
   createdAt: string;
-};
+}
+
+interface TrackingResponse {
+  success: boolean;
+  message: MessageData;
+  response: ResponseData | null;
+  error?: string;
+}
 
 export default function TrackingPage() {
   const params = useParams();
   const router = useRouter();
-  const trackingToken = params.trackingToken as string;
+  const trackingToken = typeof params?.trackingToken === 'string' ? params.trackingToken : '';
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState<MessageData | null>(null);
   const [response, setResponse] = useState<ResponseData | null>(null);
 
-  const activities = {
-    coffee: '☕ Coffee',
-    movie: '🎬 Movie',
-    dinner: '🍽️ Dinner',
-    walk: '🚶 Walk'
+  const activities: Record<string, string> = {
+    coffee: '☕ Coffee Date',
+    movie: '🎬 Movie Night',
+    dinner: '🍽️ Romantic Dinner',
+    walk: '🚶 Sunset Walk'
   };
 
-  useEffect(() => {
-  const fetchTrackingData = async () => {
+  const fetchTrackingData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/track/${trackingToken}`);
-      const data = await res.json();
-
+      const res = await fetch(`/api/track/${trackingToken}`); 
+      const data: TrackingResponse = await res.json();
+      
       if (!res.ok) {
         setError(data.error || 'Tracking link not found');
-        setLoading(false);
-        return;
+      } else {
+        setMessage(data.message);
+        setResponse(data.response);
       }
-
-      setMessage(data.message);
-      setResponse(data.response);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching tracking data:', err);
-      setError('Something went wrong. Please try again.');
+    } catch  {
+      setError('Connection lost. Retrying...');
+    } finally {
       setLoading(false);
     }
-  };
+  }, [trackingToken]);
 
-  if (trackingToken) {
-    fetchTrackingData();
-    // Auto-refresh every 10 seconds to check for new responses
-    const interval = setInterval(fetchTrackingData, 10000);
-    return () => clearInterval(interval);
-  }
-}, [trackingToken]);
+  useEffect(() => {
+    if (trackingToken) {
+      fetchTrackingData();
+      const interval = setInterval(fetchTrackingData, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [trackingToken, fetchTrackingData]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
+  if (loading) return (
+    <div className="min-h-screen bg-[#FFF9FA] flex items-center justify-center">
+      <Loader2 className="w-8 h-8 text-red-300 animate-spin" />
+    </div>
+  );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-red-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading tracking info...</p>
-        </div>
+  if (error && !message) return (
+    <div className="min-h-screen bg-[#FFF9FA] flex items-center justify-center px-4">
+      <div className="bg-white p-8 rounded-4xl shadow-xl text-center border border-red-50 max-w-sm">
+        <Heart className="w-10 h-10 text-red-100 mx-auto mb-4" />
+        <p className="font-bold text-gray-800">{error}</p>
+        <button onClick={() => router.push('/')} className="mt-6 text-red-500 font-bold text-sm underline">Go Back Home</button>
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-pink-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-white border-2 border-red-100 rounded-3xl p-8 text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Oops!</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-red-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-red-600 transition-all"
-          >
-            Go Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const getResponseEmoji = () => {
-    if (!response) return '⏳';
-    if (response.responseType === 'yes') return '💖';
-    if (response.responseType === 'maybe') return '💭';
-    return '🤍';
-  };
-
-  const getResponseText = () => {
-    if (!response) return 'Waiting for response...';
-    if (response.responseType === 'yes') return 'They said YES! 💕';
-    if (response.responseType === 'maybe') return 'They said MAYBE - let\'s talk 💬';
-    return 'They said not right now 💙';
-  };
-
-  const getResponseColor = () => {
-    if (!response) return 'bg-gray-100 text-gray-700';
-    if (response.responseType === 'yes') return 'bg-red-50 text-red-700 border-red-200';
-    if (response.responseType === 'maybe') return 'bg-purple-50 text-purple-700 border-purple-200';
-    return 'bg-gray-50 text-gray-700 border-gray-200';
-  };
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-pink-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Heart className="w-8 h-8 text-white" fill="currentColor" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Message Tracker</h1>
-          <p className="text-gray-600">See how your message is doing</p>
-        </div>
-
-        {/* Status Cards */}
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          {/* Sent Status */}
-          <div className="bg-white border-2 border-red-100 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Message Status</p>
-                <p className="font-semibold text-gray-900">Sent</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">
-              <Calendar className="w-3 h-3 inline mr-1" />
-              {formatDate(message!.createdAt)}
-            </p>
-          </div>
-
-          {/* Opened Status */}
-          <div className="bg-white border-2 border-red-100 rounded-2xl p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                message?.isOpened ? 'bg-blue-100' : 'bg-gray-100'
-              }`}>
-                <Eye className={`w-5 h-5 ${message?.isOpened ? 'text-blue-600' : 'text-gray-400'}`} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Opened</p>
-                <p className="font-semibold text-gray-900">
-                  {message?.isOpened ? 'Yes! 👀' : 'Not yet'}
-                </p>
-              </div>
-            </div>
-            {message?.isOpened && (
-              <p className="text-xs text-gray-500">They&apos;ve seen your message</p>
-            )}
+    <div className="min-h-screen bg-[#FFF9FA] py-12 px-4 flex flex-col items-center">
+      <div className="max-w-xl w-full space-y-6">
+        
+        {/* Top Navigation */}
+        <div className="flex items-center justify-between px-2">
+          <button 
+            onClick={() => router.push('/')}
+            className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors group"
+          >
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-widest">Home</span>
+          </button>
+          <div className="bg-white px-4 py-1.5 rounded-full border border-red-50 shadow-sm">
+            <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Live Tracker</span>
           </div>
         </div>
 
-        {/* Message Preview */}
-        <div className="bg-white border-2 border-red-100 rounded-3xl p-6 md:p-8 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Message</h2>
+        {/* Status Overview Card */}
+        <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_40px_rgba(0,0,0,0.03)] border border-red-50 flex items-center justify-around">
+          <div className="flex flex-col items-center gap-2">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${message?.isOpened ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-300'}`}>
+              <Eye size={22} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-tighter text-gray-400">
+              {message?.isOpened ? 'Seen' : 'Unread'}
+            </span>
+          </div>
           
-          <div className="bg-pink-50 border-2 border-red-100 rounded-2xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              {message?.senderName && (
-                <span className="text-sm text-gray-600">From: <strong>{message.senderName}</strong></span>
-              )}
-              {message?.recipientName && (
-                <span className="text-sm text-gray-600">To: <strong>{message.recipientName}</strong></span>
-              )}
-            </div>
-            <p className="text-gray-700 leading-relaxed">
-              {message?.messageText}
-            </p>
-          </div>
+          <div className="h-10 w-px bg-gray-100" />
 
-          {message?.activities && message.activities.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              <span className="text-sm text-gray-600">Activity options:</span>
-              {message.activities.map((activityId) => (
-                <span key={activityId} className="text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full">
-                  {activities[activityId as keyof typeof activities]}
-                </span>
-              ))}
+          <div className="flex flex-col items-center gap-2">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${response ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-300'}`}>
+              <CheckCircle size={22} />
             </div>
-          )}
+            <span className="text-[10px] font-black uppercase tracking-tighter text-gray-400">
+              {response ? 'Replied' : 'Waiting'}
+            </span>
+          </div>
         </div>
 
-        {/* Response Status */}
-        <div className={`bg-white border-2 rounded-3xl p-6 md:p-8 ${getResponseColor()}`}>
-          <div className="text-center mb-6">
-            <div className="text-6xl mb-4">{getResponseEmoji()}</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{getResponseText()}</h2>
-          </div>
-
-          {response ? (
-            <div className="space-y-4">
-              {/* Selected Activity */}
-              {response.selectedActivity && (
-                <div className="bg-white border-2 border-red-100 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageCircle className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">They picked:</span>
-                  </div>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {activities[response.selectedActivity as keyof typeof activities]}
-                  </p>
-                </div>
-              )}
-
-              {/* Personal Note */}
-              {response.replyText && (
-                <div className="bg-white border-2 border-red-100 rounded-2xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Heart className="w-4 h-4 text-red-500" fill="currentColor" />
-                    <span className="text-sm font-medium text-gray-700">Their note:</span>
-                  </div>
-                  <p className="text-gray-800 leading-relaxed italic">
-                    &quot;{response.replyText}&quot;
-                  </p>
-                </div>
-              )}
-
-              <p className="text-sm text-gray-500 text-center">
-                <Clock className="w-3 h-3 inline mr-1" />
-                Responded {formatDate(response.createdAt)}
-              </p>
+        {/* Main Content Area */}
+        <div className="bg-white rounded-[3rem] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-red-50 relative overflow-hidden">
+          {!response ? (
+            <div className="text-center py-12">
+              <div className="relative inline-block mb-6">
+                <Heart className="w-16 h-16 text-red-50 animate-pulse" fill="currentColor" />
+                <Clock className="w-6 h-6 text-red-300 absolute bottom-0 right-0 animate-bounce" />
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight italic">Waiting for a heart beat...</h2>
+              <p className="text-gray-400 text-sm mt-2">Your message for {message?.recipientName} is live.</p>
             </div>
           ) : (
-            <div className="text-center">
-              <p className="text-gray-600 mb-4">
-                {message?.isOpened 
-                  ? "They've opened your message! Waiting for them to respond..." 
-                  : "Your message is waiting to be opened. This page updates automatically."}
-              </p>
-              <div className="inline-flex items-center gap-2 text-sm text-gray-500">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Checking for updates...
+            <div className="animate-in fade-in zoom-in-95 duration-700">
+              <div className="text-center mb-10">
+                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-4xl">
+                    {response.responseType === 'yes' ? '💖' : response.responseType === 'maybe' ? '💭' : '🤍'}
+                  </span>
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 tracking-tight">
+                  {response.responseType === 'yes' ? "It's a Yes!" : 
+                    response.responseType === 'maybe' ? "They said Maybe" : "Not this time"}
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                {response.selectedActivity && (
+                  <div className="bg-red-50/30 p-6 rounded-4xl border border-red-50/50">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">Proposed Plan</p>
+                    <p className="text-lg font-bold text-gray-800">{activities[response.selectedActivity] || 'Activity'}</p>
+                  </div>
+                )}
+                
+                {response.replyText && (
+                  <div className="bg-gray-50/50 p-6 rounded-4xl border border-gray-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Their Message</p>
+                    <p className="text-lg font-medium text-gray-700 italic leading-relaxed">
+                      &quot;{response.replyText}&quot;
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Expires Info */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            This message expires on {new Date(message!.expiresAt).toLocaleDateString('en-US', { 
-              month: 'long', 
-              day: 'numeric',
-              year: 'numeric'
-            })}
-          </p>
-        </div>
+        {/* Action Button */}
+        <button
+          onClick={() => router.push('/create')}
+          className="w-full bg-gray-900 text-white py-6 rounded-full font-black text-lg hover:bg-red-500 transition-all active:scale-95 shadow-xl flex items-center justify-center gap-3"
+        >
+          <Plus size={20} strokeWidth={3} /> Create New Message
+        </button>
 
-        {/* Actions */}
-        <div className="mt-8 flex gap-4 justify-center">
-          <button
-            onClick={() => router.push('/')}
-            className="bg-gray-100 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-200 transition-all"
-          >
-            Back Home
-          </button>
-          <button
-            onClick={() => router.push('/create')}
-            className="bg-red-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-red-600 transition-all"
-          >
-            Create Another Message
-          </button>
-        </div>
       </div>
     </div>
   );
