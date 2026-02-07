@@ -89,7 +89,7 @@ export default function TrackingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF9FA] py-12 px-4 flex flex-col items-center">
+    <div className="min-h-screen bg-[#FFF9FA] py-24 px-4 flex flex-col items-center">
       <div className="max-w-xl w-full space-y-6">
         
         {/* Top Navigation */}

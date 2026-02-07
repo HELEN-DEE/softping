@@ -8,7 +8,7 @@ export default function HeroSection() {
   const router = useRouter();
   
   return (
-    <section className="relative px-6 pt-20 pb-18 overflow-hidden bg-[#FFF9FA]">
+    <section className="relative px-6 pt-28 pb-18 overflow-hidden bg-[#FFF9FA]">
       
       {/* --- ARTISTIC ELEMENTS (The "Non-AI" Touch) --- */}
       

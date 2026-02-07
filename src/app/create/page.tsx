@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Heart, Copy, Check, ArrowLeft, Loader2, X, Eye, Brush, Zap, Share2 } from 'lucide-react';
+import { Heart, Copy, Check, ArrowLeft, Loader2, X, Eye, Brush, Zap, Share2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 // --- Type Definitions ---
@@ -435,57 +435,124 @@ function CardDisplay({ formData }: { formData: FormData }) {
   const from = formData.senderName || "Someone";
   const to = formData.recipientName || "Recipient";
   const msg = formData.message || "Your message...";
-  const commonClasses = "rounded-[2.5rem] p-7 shadow-sm border transition-all duration-500";
+  
+  // Clean base: consistent padding and rounded corners
+  const baseClasses = "relative w-full rounded-[2.5rem] p-10 flex flex-col min-h-[420px] transition-all duration-500";
 
   switch (formData.cardStyle) {
     case 'minimalist':
       return (
-        <div className={`${commonClasses} bg-white border-gray-100 text-left`}>
-          <Heart className="w-6 h-6 text-red-500 mb-8" fill="currentColor" />
-          <h2 className="text-2xl font-light text-gray-800 mb-6 tracking-tight">{to},</h2>
-          <p className="text-gray-500 text-sm font-light leading-relaxed mb-10">{msg}</p>
-          <p className="text-[10px] font-bold text-gray-300 uppercase">— {from}</p>
+        <div className={`${baseClasses} bg-white border border-gray-100 shadow-sm text-left`}>
+          <div className="flex-1">
+            <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-300 mb-10">To</h2>
+            <p className="text-4xl font-light text-gray-900 tracking-tight mb-8 leading-none">{to}</p>
+            <p className="text-gray-500 text-lg font-light leading-relaxed max-w-[90%]">
+              {msg}
+            </p>
+          </div>
+          <div className="pt-10">
+            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-900">
+              {from}
+            </p>
+          </div>
         </div>
       );
+
     case 'playful':
       return (
-        <div className={`${commonClasses} bg-yellow-50 border-yellow-200 relative`}>
-          <h2 className="text-xl font-black text-gray-900 mb-5 italic uppercase">For {to}! 💕</h2>
-          <div className="bg-white/80 p-5 rounded-2xl shadow-inner border border-yellow-100">
-            <p className="text-gray-800 text-[11px] font-bold leading-relaxed">{msg}</p>
+        <div className={`${baseClasses} bg-[#FFF9FA] border-2 border-red-100 text-center items-center`}>
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-8 border border-red-100">
+            <Heart className="w-8 h-8 text-red-500" fill="currentColor" />
           </div>
-          <p className="mt-5 text-[10px] font-black text-red-400 text-right">With love, {from}</p>
+          <h2 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">For {to}!</h2>
+          <div className="flex-1 w-full bg-white rounded-3xl p-6 shadow-sm border border-red-50">
+            <p className="text-gray-700 text-base font-bold leading-relaxed italic">
+              &quot;{msg}&quot;
+            </p>
+          </div>
+          <p className="mt-8 text-xs font-black text-red-400 uppercase tracking-widest">
+            Xoxo, {from}
+          </p>
         </div>
       );
+
     case 'elegant':
       return (
-        <div className={`${commonClasses} bg-white border-pink-50 p-9 text-center`}>
-          <Heart className="w-5 h-5 text-pink-400 mx-auto mb-6" fill="currentColor" />
-          <h2 className="text-2xl font-serif italic text-gray-800 mb-6">{to}</h2>
-          <p className="text-gray-600 text-[11px] font-serif leading-relaxed italic border-t border-pink-100 pt-6">{msg}</p>
-          <p className="mt-6 text-[10px] font-serif text-gray-300">— {from} —</p>
+        <div className={`${baseClasses} bg-[#FFFCFB] border border-[#F5EBE0] text-center items-center`}>
+          {/* Subtle floral/refined ornament */}
+          <div className="mb-10 opacity-40">
+            <svg width="40" height="20" viewBox="0 0 40 20" fill="none" className="text-[#D4A373]">
+              <path d="M0 10C10 10 10 0 20 0C30 0 30 10 40 10C30 10 30 20 20 20C10 20 10 10 0 10Z" fill="currentColor" />
+            </svg>
+          </div>
+          
+          <h2 className="text-sm font-light tracking-[0.4em] text-[#B89C8E] uppercase mb-4">To</h2>
+          <h2 className="text-3xl font-serif italic text-[#6B5E51] mb-8">{to}</h2>
+          
+          <div className="flex-1 flex flex-col justify-center max-w-[85%]">
+            <p className="text-[#8D7B6D] text-lg font-serif leading-loose italic">
+              {msg}
+            </p>
+          </div>
+          
+          <div className="mt-10 pt-8 border-t border-[#F5EBE0] w-1/2">
+            <p className="text-[10px] font-medium tracking-[0.3em] text-[#B89C8E] uppercase">
+              With Sincerity, {from}
+            </p>
+          </div>
         </div>
       );
+
     case 'modern':
       return (
-        <div className={`${commonClasses} bg-linear-to-br from-red-500 to-pink-600 border-none text-white shadow-2xl`}>
-          <Heart className="w-6 h-6 mb-6" fill="currentColor" />
-          <h2 className="text-2xl font-black mb-3 text-white">Hey {to}! 👋</h2>
-          <div className="bg-black/10 p-5 rounded-3xl border border-white/10 mt-4 shadow-inner">
-            <p className="text-xs font-medium text-pink-50 leading-relaxed">{msg}</p>
+        <div className={`${baseClasses} bg-white border border-gray-100 overflow-hidden`}>
+          {/* A soft, sophisticated accent glow instead of a border */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-red-50/50 blur-3xl rounded-full -mr-16 -mt-16" />
+          
+          <div className="relative z-10 flex-1">
+            <div className="flex items-baseline gap-2 mb-12">
+              <span className="text-5xl font-black text-gray-900 tracking-tighter">Hi.</span>
+              <div className="h-2 w-2 bg-red-500 rounded-full" />
+            </div>
+            
+            <h2 className="text-lg font-bold text-gray-400 mb-6">For {to}</h2>
+            
+            <div className="border-l-2 border-red-100 pl-6 py-2">
+              <p className="text-gray-900 text-xl font-medium leading-snug tracking-tight">
+                {msg}
+              </p>
+            </div>
           </div>
-          <p className="mt-6 text-[10px] font-bold opacity-70 uppercase tracking-widest">From {from}</p>
+          
+          <div className="mt-8 flex items-center justify-between">
+            <p className="text-xs font-black text-gray-900 uppercase tracking-tighter">
+              Sent by {from}
+            </p>
+            <div className="flex gap-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="w-1 h-1 bg-red-200 rounded-full" />
+              ))}
+            </div>
+          </div>
         </div>
       );
-    default:
+
+    default: // Classic
       return (
-        <div className={`${commonClasses} bg-white border-red-50 text-center`}>
-          <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-2"><Heart className="w-7 h-7 text-white -rotate-2" fill="currentColor" /></div>
-          <h2 className="text-2xl font-black mb-4 tracking-tight text-gray-900">Dearest {to},</h2>
-          <div className="bg-red-50/50 rounded-3xl p-6 border border-red-50 shadow-inner">
-            <p className="text-gray-700 text-sm font-bold leading-relaxed italic">&quot;{msg}&quot;</p>
+        <div className={`${baseClasses} bg-white border-2 border-red-50 shadow-[0_20px_40px_rgba(255,182,193,0.2)] text-center items-center`}>
+          <div className="mb-8">
+            <Heart className="w-10 h-10 text-red-500 animate-bounce" fill="currentColor" />
           </div>
-          <p className="mt-8 text-[11px] font-black text-red-300 tracking-[0.2em] uppercase">Love, {from}</p>
+          <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tighter">Dearest {to},</h2>
+          <div className="flex-1 flex items-center justify-center">
+             <p className="text-gray-700 text-xl font-bold leading-relaxed italic">
+               &quot;{msg}&quot;
+             </p>
+          </div>
+          <div className="mt-8">
+            <div className="w-8 h-1 bg-red-100 mx-auto mb-4 rounded-full" />
+            <p className="text-[10px] font-black text-red-300 tracking-[0.2em] uppercase">Love always, {from}</p>
+          </div>
         </div>
       );
   }

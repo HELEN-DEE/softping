@@ -112,7 +112,7 @@ export default function MessagePage() {
 
   useEffect(() => {
   if (token) {
-    // This calls the PATCH method we just added above
+    // This calls the PATCH method e
     fetch(`/api/messages/${token}`, { method: 'PATCH' })
       .then(() => console.log("Status updated to Seen"))
       .catch(err => console.error("Update failed", err));
@@ -293,65 +293,131 @@ export default function MessagePage() {
   );
 }
 
-// --- CARD STYLES (HEX BASED FOR COMPATIBILITY) ---
+// --- CARD STYLES ---
 
 function ClassicCard({ message }: { message: MessageData }) {
   return (
-    <div className="bg-white p-10 md:p-14 text-center border-b-12 border-[#ef4444]">
-      <div className="w-20 h-20 bg-[#ef4444] rounded-3xl mx-auto mb-8 flex items-center justify-center rotate-6 shadow-lg">
-        <Heart className="w-10 h-10 text-white" fill="currentColor" />
+    <div className="bg-white p-10 md:p-16 text-center flex flex-col items-center shadow-[0_20px_50px_rgba(255,182,193,0.2)] rounded-[2.5rem] border-2 border-red-50">
+      <div className="relative mb-10">
+        <div className="absolute inset-0 bg-red-100 blur-2xl opacity-30 rounded-full scale-150" />
+        <div className="relative w-20 h-20 bg-[#ef4444] rounded-4xl flex items-center justify-center mx-auto shadow-xl shadow-red-200 rotate-3">
+          <Heart className="w-10 h-10 text-white -rotate-3" fill="currentColor" />
+        </div>
       </div>
-      <h2 className="text-3xl font-black text-gray-900 mb-6 italic">Hey {message.recipientName}!</h2>
-      <div className="bg-[#fff5f5] rounded-[2.5rem] p-10 border border-[#fee2e2]">
-        <p className="text-gray-800 text-xl font-bold leading-relaxed italic font-serif">&quot;{message.messageText}&quot;</p>
+      <h2 className="text-3xl font-black mb-4 tracking-tighter text-gray-900">Dearest {message.recipientName},</h2>
+      <div className="flex-1 flex items-center justify-center py-6">
+        <p className="text-gray-700 text-xl md:text-2xl font-bold leading-relaxed italic border-x-2 border-red-50 px-6">
+          &quot;{message.messageText}&quot;
+        </p>
       </div>
-      <p className="mt-8 text-[10px] font-black text-red-300 uppercase tracking-[0.4em]">From {message.senderName}</p>
+      <div className="mt-8">
+        <div className="w-12 h-1 bg-red-100 mx-auto mb-4 rounded-full" />
+        <p className="text-[10px] font-black text-red-300 tracking-[0.4em] uppercase">Love always, {message.senderName}</p>
+      </div>
     </div>
   );
 }
 
 function ModernCard({ message }: { message: MessageData }) {
   return (
-    <div style={{ background: 'linear-gradient(135deg, #ef4444 0%, #db2777 100%)' }} className="p-10 md:p-16 text-white text-center">
-      <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-8"><Heart className="w-8 h-8 text-white" fill="currentColor" /></div>
-      <h2 className="text-4xl font-black mb-8 tracking-tighter uppercase italic">For {message.recipientName}</h2>
-      <div className="bg-white rounded-4xl p-8 text-gray-900 shadow-2xl"><p className="text-lg font-bold italic">{message.messageText}</p></div>
-      <p className="mt-10 text-[10px] font-black uppercase tracking-widest opacity-60">Created by {message.senderName}</p>
+    <div className="bg-white p-10 md:p-16 text-left border border-gray-100 rounded-[2.5rem] shadow-sm overflow-hidden relative min-h-112.5">
+      {/* Sophisticated accent glow */}
+      <div className="absolute top-0 right-0 w-48 h-48 bg-red-50/50 blur-[80px] rounded-full -mr-20 -mt-20" />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="flex items-baseline gap-2 mb-12">
+          <span className="text-6xl font-black text-gray-900 tracking-tighter">Hi.</span>
+          <div className="h-3 w-3 bg-[#ef4444] rounded-full animate-pulse" />
+        </div>
+        
+        <h2 className="text-sm font-black text-gray-300 uppercase tracking-widest mb-6">A message for {message.recipientName}</h2>
+        
+        <div className="border-l-4 border-red-100 pl-8 py-2 flex-1">
+          <p className="text-gray-900 text-2xl md:text-3xl font-medium leading-tight tracking-tight">
+            {message.messageText}
+          </p>
+        </div>
+        
+        <div className="mt-12 flex items-center justify-between border-t border-gray-50 pt-8">
+          <p className="text-xs font-black text-gray-900 uppercase tracking-tighter italic">
+            Sent by {message.senderName}
+          </p>
+          <div className="flex gap-1.5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="w-1.5 h-1.5 bg-red-100 rounded-full" />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 function PlayfulCard({ message }: { message: MessageData }) {
   return (
-    <div className="bg-[#fff9c4] p-10 md:p-14 text-center border-4 border-dashed border-[#fbc02d]">
-      <h2 className="text-3xl font-black text-gray-900 mb-6 uppercase tracking-tighter">💌 Special Mail!</h2>
-      <div className="bg-white p-8 rounded-3xl shadow-lg border-2 border-[#fbc02d]">
-        <p className="text-gray-800 text-xl font-black italic mb-4">Dear {message.recipientName},</p>
-        <p className="text-gray-600 font-bold leading-relaxed">{message.messageText}</p>
+    <div className="bg-[#FFF9FA] p-10 md:p-16 text-center items-center rounded-[3rem] border-2 border-red-100">
+      <div className="w-20 h-20 bg-white rounded-4xl flex items-center justify-center mb-8 border border-red-100 shadow-sm -rotate-6">
+        <Heart className="w-10 h-10 text-red-400" fill="currentColor" />
       </div>
-      <p className="mt-8 font-black text-[#f57f17] uppercase tracking-widest">- {message.senderName} -</p>
+      <h2 className="text-3xl font-black text-gray-900 mb-8 tracking-tight">For {message.recipientName}!</h2>
+      <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-red-50 relative">
+        {/* <div className="absolute -top-3 -right-3 bg-yellow-300 text-[10px] font-black px-3 py-1 rounded-full border-2 border-gray-900 rotate-12">
+          OPEN ME! 💌
+        </div> */}
+        <p className="text-gray-700 text-xl font-bold leading-relaxed italic">
+          &quot;{message.messageText}&quot;
+        </p>
+      </div>
+      <p className="mt-10 text-xs font-black text-red-400 uppercase tracking-[0.3em]">
+        Xoxo, {message.senderName}
+      </p>
     </div>
   );
 }
 
 function ElegantCard({ message }: { message: MessageData }) {
   return (
-    <div className="bg-white p-12 md:p-20 text-center border border-[#fce7f3]">
-      <Heart className="w-6 h-6 text-[#f9a8d4] mx-auto mb-8" fill="currentColor" />
-      <h2 className="text-2xl font-serif italic text-gray-800 mb-10 border-b border-[#fce7f3] pb-10 uppercase tracking-[0.3em]">{message.recipientName}</h2>
-      <p className="text-gray-600 text-xl italic font-serif">{message.messageText}</p>
-      <p className="mt-12 text-[10px] font-bold text-[#f9a8d4] uppercase tracking-widest">— {message.senderName} —</p>
+    <div className="bg-[#FFFCFB] p-12 md:p-20 text-center items-center border border-[#F5EBE0] rounded-[3rem] shadow-sm">
+      <div className="mb-12 opacity-50">
+        <svg width="60" height="30" viewBox="0 0 40 20" fill="none" className="mx-auto text-[#D4A373]">
+          <path d="M0 10C10 10 10 0 20 0C30 0 30 10 40 10C30 10 30 20 20 20C10 20 10 10 0 10Z" fill="currentColor" />
+        </svg>
+      </div>
+      
+      <h2 className="text-xs font-light tracking-[0.5em] text-[#B89C8E] uppercase mb-6">To</h2>
+      <h2 className="text-4xl font-serif italic text-[#6B5E51] mb-12 tracking-tight">{message.recipientName}</h2>
+      
+      <div className="py-10 border-y border-[#F5EBE0] max-w-[90%] mx-auto">
+        <p className="text-[#8D7B6D] text-2xl font-serif leading-loose italic">
+          {message.messageText}
+        </p>
+      </div>
+      
+      <div className="mt-12 flex flex-col items-center">
+        <p className="text-[11px] font-medium tracking-[0.4em] text-[#B89C8E] uppercase">
+          With Sincerity, {message.senderName}
+        </p>
+      </div>
     </div>
   );
 }
 
 function MinimalistCard({ message }: { message: MessageData }) {
   return (
-    <div className="bg-white p-12 md:p-20 text-left border border-gray-50">
-      <Heart className="w-8 h-8 text-[#ef4444] mb-12" fill="currentColor" />
-      <h2 className="text-4xl font-light text-gray-900 mb-8 tracking-tight">{message.recipientName},</h2>
-      <p className="text-gray-400 text-xl leading-relaxed font-light mb-16">{message.messageText}</p>
-      <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Love, {message.senderName}</p>
+    <div className="bg-white p-12 md:p-20 text-left border border-gray-100 rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+      <div className="flex-1">
+        <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-300 mb-12">Private Message</h2>
+        <p className="text-5xl font-light text-gray-900 tracking-tighter mb-10">{message.recipientName}</p>
+        <p className="text-gray-500 text-2xl font-light leading-relaxed max-w-[90%] mb-20 italic">
+          {message.messageText}
+        </p>
+      </div>
+      <div className="pt-10 border-t border-gray-50 flex items-center justify-between">
+        <p className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-900">
+          From {message.senderName}
+        </p>
+        <div className="w-2 h-2 rounded-full bg-red-400" />
+      </div>
     </div>
   );
 }
