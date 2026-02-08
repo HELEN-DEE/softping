@@ -26,9 +26,6 @@ export default function ExampleSection() {
           </div>
           <h3 className="text-xl font-black text-gray-900 mb-4 tracking-tighter text-center">Dearest Jamie,</h3>
           <p className="text-gray-600 text-sm font-bold italic leading-relaxed mb-6">&quot;Would you maybe want to grab coffee this Valentine&apos;s? No pressure at all 💕&quot;</p>
-          {/* <div className="mt-auto w-full space-y-2">
-            <div className="w-full py-3 bg-[#ef4444] rounded-full text-[10px] font-black text-white uppercase tracking-widest">Yes, I'd love to!</div>
-          </div> */}
         </div>
       )
     },
@@ -45,9 +42,6 @@ export default function ExampleSection() {
           <div className="border-l-2 border-red-100 pl-4 mb-6">
             <p className="text-gray-900 text-sm font-medium leading-snug tracking-tight italic">&quot;I&apos;ve been wanting to ask you something for a while now...&quot;</p>
           </div>
-          {/* <div className="mt-auto space-y-2">
-            <div className="w-full py-3 border border-gray-900 rounded-xl text-[10px] font-black text-gray-900 uppercase tracking-widest text-center">Respond Here</div>
-          </div> */}
         </div>
       )
     },
@@ -63,17 +57,14 @@ export default function ExampleSection() {
           </div>
           <h3 className="text-lg font-serif italic text-[#6B5E51] mb-6 tracking-tight">For Jamie</h3>
           <p className="text-[#8D7B6D] text-sm font-serif leading-loose italic mb-6">&quot;If you&apos;re free, I&apos;d love to take you to that new spot ✨&quot;</p>
-          {/* <div className="mt-auto w-full">
-            <div className="w-full py-3 border-t border-[#F5EBE0] text-[9px] font-medium text-[#B89C8E] uppercase tracking-[0.3em]">View Invite</div>
-          </div> */}
         </div>
       )
     }
   ];
 
   return (
-    <section className="px-6 py-24 bg-white overflow-hidden">
-      <div className="max-w-5xl mx-auto">
+    <section id='examples' className="px-6 pt-24 bg-white overflow-hidden">
+      <div className="max-w-6xl mx-auto">
         
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
@@ -90,40 +81,54 @@ export default function ExampleSection() {
           </p>
         </div>
 
-        {/* Carousel */}
-        <div 
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 no-scrollbar"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+        {/* Desktop: Grid (all visible, no scroll) */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6 mb-8">
           {templates.map((card) => (
-            <div key={card.id} className="flex-none w-70 md:w-[320px] h-75 snap-center">
+            <div key={card.id} className="h-100">
               {card.content}
             </div>
           ))}
         </div>
 
-        {/* Dynamic Progress Bar (Mobile Fix) */}
-        <div className="max-w-50 mx-auto mt-4">
-          <div className="h-1 w-full bg-gray-50 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-red-500 transition-all duration-300 ease-out"
-              style={{ width: `${Math.max(scrollProgress, 15)}%` }}
-            />
+        {/* Mobile/Tablet: Carousel (with custom progress bar, NO scrollbar) */}
+        <div className="md:hidden">
+          <div 
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar"
+          >
+            {templates.map((card) => (
+              <div key={card.id} className="flex-none w-70 sm:w-[320px] h-80 snap-center">
+                {card.content}
+              </div>
+            ))}
           </div>
-          <div className="flex justify-between mt-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 px-1">
-            <span>Scroll</span>
-            <span>{templates.length} Styles</span>
+
+          {/* Custom Progress Bar (Mobile Only) */}
+          <div className="max-w-xs mx-auto mt-4">
+            <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-red-500 transition-all duration-300 ease-out rounded-full"
+                style={{ width: `${Math.max(scrollProgress, 33.33)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 px-1">
+              <span>Swipe</span>
+              <span>{templates.length} Styles</span>
+            </div>
           </div>
         </div>
 
       </div>
       
-      {/* CSS to hide scrollbar */}
+      {/* CSS to completely hide scrollbar */}
       <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
+        .hide-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;  /* Chrome, Safari, Opera */
         }
       `}</style>
     </section>

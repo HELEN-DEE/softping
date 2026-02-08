@@ -189,7 +189,7 @@ export default function MessagePage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF9FA] py-12 px-4 relative flex flex-col items-center overflow-x-hidden">
+    <div className="min-h-screen bg-[#FFF9FA] py-18 px-4 relative flex flex-col items-center overflow-x-hidden">
       <HeartExplosion trigger={showExplosion} />
 
       <div className="max-w-xl w-full relative z-10 space-y-8 animate-in fade-in duration-700">

@@ -1,4 +1,5 @@
 import {ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function HowItWorks() {
     const steps = [
@@ -75,9 +76,9 @@ export default function HowItWorks() {
 
             {/* Bottom CTA to keep them moving */}
             <div className="mt-20 text-center">
-            <button className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors group">
+            <Link href="#examples" className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors group">
                 See Example Cards <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
             </div>
         </div>
         </section>

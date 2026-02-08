@@ -35,7 +35,7 @@ export default function Navbar() {
           {/* Desktop Links: Lighter, more elegant spacing */}
           <div className="hidden md:flex items-center gap-10">
             <div className="flex items-center gap-8">
-              {['How it works', 'Examples', 'FAQ'].map((item) => (
+              {['How it works', 'Examples'].map((item) => (
                 <a 
                   key={item}
                   href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} 
@@ -82,7 +82,7 @@ export default function Navbar() {
                 onClick={() => { router.push('/create'); setIsMenuOpen(false); }}
                 className="bg-red-500 text-white py-5 rounded-full text-xs font-black uppercase tracking-widest shadow-xl shadow-red-100"
               >
-                Get Started
+                Create Now
               </button>
             </div>
           </div>
