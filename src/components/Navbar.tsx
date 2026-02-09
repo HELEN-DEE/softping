@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Menu, X, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -8,13 +8,47 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
+  // Lock body scroll when menu is open - STRONGER VERSION
+  useEffect(() => {
+    if (isMenuOpen) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      
+      // Lock scroll on body and html
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      // Restore scroll
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.documentElement.style.overflow = '';
+      
+      // Restore scroll position
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 px-6 py-3">
+    <nav className="fixed top-0 inset-x-0 z-100 px-6 py-3">
       <div className="max-w-6xl mx-auto">
         
-        <div className="bg-white/90 backdrop-blur-md border-[3px] border-red-50 rounded-[2.5rem] px-8 py-3 shadow-[0_15px_40px_-12px_rgba(255,182,193,0.2)] flex items-center justify-between">
+        <div className="relative z-102 bg-white/90 backdrop-blur-md border-[3px] border-red-50 rounded-[2.5rem] px-8 py-3 shadow-[0_15px_40px_-12px_rgba(255,182,193,0.2)] flex items-center justify-between">
           
-          {/* Logo: Removing the heavy black, using the brand red */}
+          {/* Logo */}
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
             onClick={() => router.push('/')}
@@ -64,11 +98,19 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* Background Blur Overlay - Only visible when menu is open */}
+        {isMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-white/40 backdrop-blur-md z-101 animate-in fade-in duration-300"
+            onClick={() => setIsMenuOpen(false)} 
+          />
+        )}
+
         {/* Mobile Menu: Pill style */}
         {isMenuOpen && (
-          <div className="md:hidden mt-4 bg-white border-[3px] border-red-50 rounded-[3rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+          <div className="md:hidden fixed left-6 right-6 top-22 z-103 bg-white border-[3px] border-red-50 rounded-[3rem] p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
             <div className="flex flex-col gap-6 text-center">
-              {['How it works', 'Examples', 'FAQ'].map((item) => (
+              {['How it works', 'Examples'].map((item) => (
                 <a 
                   key={item}
                   href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} 
